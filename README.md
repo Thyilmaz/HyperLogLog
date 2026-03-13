@@ -1,1 +1,52 @@
-Bu proje, büyük veri analitiğinde kullanılan olasılıksal bir veri yapısı olan HyperLogLog (HLL) algoritmasının Java tabanlı bir gerçeklemesidir. Proje, "Cardinality Estimation" (Küme Büyüklüğü Tahmini) problemini minimum bellek kullanımı ve yüksek doğrulukla çözmeyi amaçlar.🚀 ÖzelliklerDüşük Bellek Tüketimi: Milyonlarca tekil öğeyi sadece birkaç KB (kilobayt) register alanı ile sayabilir.Yüksek Performans: $O(1)$ zaman karmaşıklığı ile ekleme ve sorgulama.Hassas Tahmin: Harmonik ortalama ve küçük veri setleri için Linear Counting düzeltmesi içerir.Birleştirilebilirlik (Mergeability): İki farklı HLL yapısı, veri kaybı olmadan tek bir yapıda birleştirilebilir.🛠 Kullanılan TeknolojilerDil: Java 25Derleme Aracı: MavenHash Fonksiyonu: Google Guava (MurmurHash3_128)IDE: IntelliJ IDEA📝 Algoritma TasarımıAlgoritma üç temel aşamadan oluşur:Hashing: Gelen veri 64-bitlik yüksek kaliteli bir hash değerine dönüştürülür.Bucketing (Kovalama): Hash değerinin ilk $p$ biti, verinin hangi kovaya (register) düşeceğini belirler ($m = 2^p$).Leading Zeros: Kalan bitlerdeki ilk "1" bitine kadar olan sıfır sayısı ($p$) hesaplanır ve ilgili kovadaki maksimum değer güncellenir.Matematiksel FormülNihai tahmin, kovalardaki değerlerin Harmonik Ortalaması alınarak hesaplanır:$$E = \alpha_m \cdot m^2 \cdot \left( \sum_{j=1}^{m} 2^{-R_j} \right)^{-1}$$Burada $R_j$, $j$. kovadaki maksimum ardışık sıfır sayısıdır.📊 Analiz ve SonuçlarYapılan testlerde $p=12$ ($m=4096$ kova) kullanılmıştır.Gerçek Boyut: 100,000 tekil öğeHLL Tahmini: ~99,118Gözlemlenen Hata: %0.88Teorik Hata Sınırı ($\frac{1.04}{\sqrt{m}}$): %1.63Sonuçlar, algoritmanın teorik sınırların içerisinde kaldığını ve yüksek doğrulukla çalıştığını kanıtlamaktadır.
+# Büyük Veri Analitiğinde Olasılıksal Veri Yapıları: HyperLogLog (HLL) Tasarımı
+
+Bu proje, devasa veri setlerinde tekil eleman sayısını (cardinality) çok düşük bellek kullanımıyla tahmin etmek için kullanılan **HyperLogLog** algoritmasının sıfırdan Java gerçeklemesini içerir.
+
+## 📌 Proje Amacı
+"Cardinality Estimation" problemini çözmek için geliştirilen bu uygulama; veriyi hashleme, kovalara ayırma (bucketing) ve ardışık sıfır sayılarını (trailing/leading zeros) takip ederek istatistiksel bir tahmin yürütür.
+
+## 🛠 Teknik Bileşenler
+
+* **Yüksek Kaliteli Hash:** Verilerin homojen dağılımı için `Google Guava` kütüphanesi üzerinden **MurmurHash3_128** kullanılmıştır.
+* **Bucketing (Kovalama):** Hash değerinin ilk `p` biti kullanılarak veriler $m = 2^p$ adet kovaya dağıtılmıştır.
+* **Register Yapısı:** Her kova, o kovaya düşen en uzun ardışık sıfır serisini (`max(rho)`) saklayan bir register görevi görür.
+* **Harmonik Ortalama:** Tahminin uç değerlerden (outliers) etkilenmemesi için aritmetik ortalama yerine Harmonik Ortalama formülü entegre edilmiştir.
+* **Düzeltme Faktörleri:** Küçük veri setleri için **Linear Counting** düzeltmesi uygulanarak doğruluk artırılmıştır.
+
+## 📈 Teorik Hata Analizi
+Algoritmanın standart hata sınırı matematiksel olarak şu şekilde ifade edilir:
+$$\text{Standart Hata} \approx \frac{1.04}{\sqrt{m}}$$
+
+Projemizde $p=12$ ($m=4096$ kova) kullanıldığında teorik hata sınırı **%1.63**'tür. Yapılan testlerde elde edilen **%0.88**'lik hata payı, tasarımın teorik sınırlarla uyumlu olduğunu göstermektedir.
+
+[Image of HyperLogLog cardinality estimation error rate graph]
+
+## 💻 Kurulum ve Çalıştırma
+
+### Gereksinimler
+* Java 25 (OpenJDK)
+* Maven
+
+### Adımlar
+1.  Depoyu klonlayın:
+    ```bash
+    git clone [https://github.com/kullaniciadi/hll-cardinality-estimator.git](https://github.com/kullaniciadi/hll-cardinality-estimator.git)
+    ```
+2.  Bağımlılıkları yükleyin ve derleyin:
+    ```bash
+    mvn clean install
+    ```
+3.  Uygulamayı çalıştırın:
+    ```bash
+    java -cp target/classes:$(mvn dependency:build-classpath | grep -v '\[INFO\]') Main
+    ```
+
+## 🎥 Sunum Detayları
+* **Geliştirme Ortamı:** IntelliJ IDEA & Maven
+* **Dil Modeli:** Gemini / Claude (Agentic Kodlama Yaklaşımı)
+* **Temel Mantık:** Bellekten tasarruf etmek için verinin kendisini değil, hash değerindeki bit desenlerini saklama.
+* **Özellik:** `merge()` metodu sayesinde iki farklı HLL yapısı kayıpsız birleştirilebilir.
+
+---
+**Geliştirici:** [Adın Soyadın]  
+**Ders:** Büyük Veri Analitiği
